@@ -1,4 +1,4 @@
-(ns dynamojo.core
+(ns bowlorama.history-tracker
   (:require [taoensso.faraday :as far]
             [me.raynes.conch :refer [programs with-programs let-programs] :as sh]))
 
@@ -12,19 +12,25 @@
                      :block? true                           ; Block thread during table creation
                      }))
 
+(defn player-history
+  "Retrieve a Player's ball history"
+  [client-opts gameid player]
+  (:ballhistory (far/get-item client-opts :bowlorama {:gameid gameid :player player}))
+  )
+
 (defn updated-history
   "Receive a Player's name and new ball value and produces the new ball history"
-  [client-opts player ball]
-  (conj (:ballhistory (far/get-item client-opts :bowlorama {:gameid 1 :player player}))
+  [client-opts gameid player ball]
+  (conj (:ballhistory (far/get-item client-opts :bowlorama {:gameid gameid :player player}))
         ball))
 
 (defn append-ball-to-history
   "Receive a Player's name and new ball value, then updates their history in persistance"
-  [client-opts player ball]
+  [client-opts gameid player ball]
   (far/put-item client-opts
                 :bowlorama
-                {:gameid      1 ; Remember that this is our primary (indexed) key
+                {:gameid      gameid ; Remember that this is our primary (indexed) key
                  :player      player
-                 :ballhistory (updated-history client-opts player ball)}))
+                 :ballhistory (updated-history client-opts gameid player ball)}))
 
 

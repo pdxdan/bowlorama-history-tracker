@@ -1,6 +1,6 @@
-(ns dynamojo.core-test
+(ns bowlorama.history-tracker-test
   (:require [clojure.test :refer :all]
-            [dynamojo.core :refer :all]
+            [bowlorama.history-tracker :refer :all]
             [me.raynes.conch.low-level :as conch]
             [taoensso.faraday :as far]))
 
@@ -39,8 +39,8 @@
 
 (defn first3
   "Establish three rounds of bowling history" []
-  (far/put-item client-opts :bowlorama {:gameid 1 :player "Donald" :ballhistory  [1 2 3] })
-  (far/put-item client-opts :bowlorama {:gameid 1 :player "Bernie" :ballhistory  [4 5 6] }))
+  (far/put-item client-opts :bowlorama {:gameid 42 :player "Donald" :ballhistory  [1 2 3] })
+  (far/put-item client-opts :bowlorama {:gameid 42 :player "Bernie" :ballhistory  [4 5 6] }))
 
 (deftest db-schema-tests
   (testing "The bowlorama table exists"
@@ -50,22 +50,22 @@
            {:gameid {:key-type :hash, :data-type :n}, :player {:key-type :range, :data-type :s}})))
   (testing "we can set and retrieve ball history uniquely by game and player"
     (first3)
-    (far/put-item client-opts :bowlorama {:gameid 2 :player "Donald" :ballhistory  [3 0 3] })
-    (is (= (:ballhistory (far/get-item client-opts :bowlorama {:gameid 1 :player "Donald"}))
+    (far/put-item client-opts :bowlorama {:gameid 43 :player "Donald" :ballhistory  [3 0 3] })
+    (is (= (:ballhistory (far/get-item client-opts :bowlorama {:gameid 42 :player "Donald"}))
            [1 2 3]))
-    (is (= (:ballhistory (far/get-item client-opts :bowlorama {:gameid 2 :player "Donald"}))
+    (is (= (:ballhistory (far/get-item client-opts :bowlorama {:gameid 43 :player "Donald"}))
            [3 0 3]))))
 
 (deftest history-maintenance
   (testing "Producing an updated ball history"
     (first3)
-    (is (= (updated-history client-opts "Bernie" 3)
+    (is (= (updated-history client-opts 42 "Bernie" 3)
            [4 5 6 3])))
   (testing "Storing and retrieving updated history in the DB"
     (first3)
-    (append-ball-to-history client-opts "Bernie" 2)
-    (append-ball-to-history client-opts "Bernie" 10)
-    (is (=  (:ballhistory (far/get-item client-opts :bowlorama {:gameid 1 :player "Bernie"}))
+    (append-ball-to-history client-opts 42 "Bernie" 2)
+    (append-ball-to-history client-opts 42 "Bernie" 10)
+    (is (=  (:ballhistory (far/get-item client-opts :bowlorama {:gameid 42 :player "Bernie"}))
             [4 5 6 2 10]))))
 
 
