@@ -5,6 +5,6 @@ This code implements and tests the schema needed for serverless bowlorama
 
 ## Usage
 
-This code expects that you have dynamodb-local installed under:
+The integration tests expect that you have dynamodb-local installed under:
 /usr/local/bin/dynamodb-local
 which is where "brew install dynamodb-local" would put it on OSX
