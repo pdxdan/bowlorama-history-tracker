@@ -4,6 +4,12 @@
             [me.raynes.conch.low-level :as conch]
             [taoensso.faraday :as far]))
 
+(def client-opts
+  "Minimum required connectivity parameters for local in-memory DB"
+  {:access-key "LocalDBAccessDoesNotNeedARealAccessKey"
+   :secret-key "LocalDBAccessDoesNotNeedARealSecretKey"
+   :endpoint "http://localhost:8000"})
+
 (defn start-local-db
   "Start the in memory dyanamodb-local process" []
   (conch/proc "pkill" "-f" "dynamodb-local")
@@ -30,12 +36,6 @@
 
 (use-fixtures :once onetime-fixture)
 (use-fixtures :each foreach-fixture)
-
-(def client-opts
-  "Minimum required connectivity parameters for local in-memory DB"
-  {:access-key "LocalDBAccessDoesNotNeedARealAccessKey"
-   :secret-key "LocalDBAccessDoesNotNeedARealSecretKey"
-   :endpoint "http://localhost:8000"})
 
 (defn first3
   "Establish three rounds of bowling history" []
