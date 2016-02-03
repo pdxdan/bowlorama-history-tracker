@@ -15,8 +15,7 @@
 (defn player-history
   "Retrieve a Player's ball history"
   [client-opts gameid player]
-  (:ballhistory (far/get-item client-opts :bowlorama {:gameid gameid :player player}))
-  )
+  (:ballhistory (far/get-item client-opts :bowlorama {:gameid gameid :player player})))
 
 (defn updated-history
   "Receive a Player's name and new ball value and produces the new ball history"

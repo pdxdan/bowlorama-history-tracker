@@ -61,11 +61,15 @@
     (first3)
     (is (= (updated-history client-opts 42 "Bernie" 3)
            [4 5 6 3])))
-  (testing "Storing and retrieving updated history in the DB"
+  (testing "Retrieve player history from the DB"
+    (first3)
+    (is (= (player-history client-opts 42 "Bernie")
+           [4 5 6])))
+  (testing "Storing updated history in the DB"
     (first3)
     (append-ball-to-history client-opts 42 "Bernie" 2)
     (append-ball-to-history client-opts 42 "Bernie" 10)
-    (is (=  (:ballhistory (far/get-item client-opts :bowlorama {:gameid 42 :player "Bernie"}))
+    (is (=  (player-history client-opts 42 "Bernie")
             [4 5 6 2 10]))))
 
 
