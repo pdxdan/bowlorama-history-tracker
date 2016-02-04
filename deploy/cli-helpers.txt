@@ -1,0 +1,66 @@
+# The real solution wpi to use CloudFormation to deploy and update everything.
+# I'm currently evaluating various Lambda deployment/management frameworks,
+# preferably one that relies on Cloudformation to manage everything in an
+# idempotent way.
+# Until I'm further along with that, here's some AWS CLI commands for deploying
+# and updating the functions.
+
+--------------------------------------------------------------------------------
+
+Publishing the initial version of the function:
+
+aws lambda create-function \
+   --region us-west-2 \
+   --function-name bowlorama-player-history \
+   --description 'Retrieve ball history for a Player' \
+   --zip-file fileb://$(pwd)/target/bowlorama-history-tracker.jar \
+   --role arn:aws:iam::558628704292:role/lambda_basic_execution \
+   --handler bowlorama.lambda.player-history \
+   --runtime java8 \
+   --timeout 15 \
+   --memory-size 512
+
+aws lambda create-function \
+   --region us-west-2 \
+   --function-name bowlorama-append-ball-to-history \
+   --description 'Retrieve ball history for a Player' \
+   --zip-file fileb://$(pwd)/target/bowlorama-history-tracker.jar \
+   --role arn:aws:iam::558628704292:role/lambda_basic_execution \
+   --handler bowlorama.lambda.append-ball-to-history \
+   --runtime java8 \
+   --timeout 15 \
+   --memory-size 512
+
+--------------------------------------------------------------------------------
+
+Publishing an updated version of the function:
+
+aws lambda update-function-code \
+--region us-west-2 \
+--function-name bowlorama-player-history \
+--zip-file fileb://$(pwd)/target/bowlorama-history-tracker.jar \
+--publish
+
+aws lambda update-function-code \
+--region us-west-2 \
+--function-name bowlorama-append-ball-to-history \
+--zip-file fileb://$(pwd)/target/bowlorama-history-tracker.jar \
+--publish
+
+
+--------------------------------------------------------------------------------
+TESTING
+
+From a shell:
+curl -H "Content-Type: application/json" -X POST \
+-d '{"gameid":2,"player":"Alfredo","ball":5}' \
+https://oarmnm6fg3.execute-api.us-west-2.amazonaws.com/prod/bowlorama-append-ball-to-history
+
+
+SAMPLE JSON FOR append-ball-to-history
+{
+    "gameid": 2,
+    "player": "Rapunzel",
+    "ball": 4
+}
+--------------------------------------------------------------------------------
