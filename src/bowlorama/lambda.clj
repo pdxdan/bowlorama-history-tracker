@@ -21,7 +21,7 @@
 (defn calculated-score
   "Calls the bowlorama-score endpoint and returns a score"
   [rolls]
-  (let [score-api "https://c6rt4qktca.execute-api.us-east-1.amazonaws.com/prod/bowlorama-score"]
+  (let [score-api "https://oarmnm6fg3.execute-api.us-west-2.amazonaws.com/prod/bowlorama-score"]
     (let [reply (client/post score-api {:form-params {:rolls rolls} :content-type :json})]
      (:score (parse-string (:body reply) true)))))
 
