@@ -1,10 +1,11 @@
 (ns bowlorama.history-tracker-test
   (:require [clojure.test :refer :all]
+            ;[bowlorama.history-tracker :as bht]
             [bowlorama.history-tracker :refer :all]
             [me.raynes.conch.low-level :as conch]
             [taoensso.faraday :as far]))
 
-(def client-opts
+(def local-client-opts
   "Minimum required connectivity parameters for local in-memory DB"
   {:access-key "LocalDBAccessDoesNotNeedARealAccessKey"
    :secret-key "LocalDBAccessDoesNotNeedARealSecretKey"
@@ -30,47 +31,49 @@
 
 (defn foreach-fixture
   "Reset the DB once for each test fixure" [f]
-  (init-bowlorama-table client-opts)
+  (binding [client-opts local-client-opts] (init-bowlorama-table client-opts))
   (f)
-  (far/delete-table client-opts :bowlorama))
+  (far/delete-table local-client-opts :bowlorama))
 
 (use-fixtures :once onetime-fixture)
 (use-fixtures :each foreach-fixture)
 
 (defn first3
   "Establish three rounds of bowling history" []
-  (far/put-item client-opts :bowlorama {:gameid 42 :player "Donald" :ballhistory  [1 2 3] })
-  (far/put-item client-opts :bowlorama {:gameid 42 :player "Bernie" :ballhistory  [4 5 6] }))
+  (far/put-item local-client-opts :bowlorama {:gameid 42 :player "Donald" :ballhistory  [1 2 3] })
+  (far/put-item local-client-opts :bowlorama {:gameid 42 :player "Bernie" :ballhistory  [4 5 6] }))
 
 (deftest db-schema-tests
   (testing "The bowlorama table exists"
-    (is (= (.contains (far/list-tables client-opts) :bowlorama) true)))
+    (is (= (.contains (far/list-tables local-client-opts) :bowlorama) true)))
   (testing "bowlorama table schema supports of composite game/player key"
-    (is (= (:prim-keys (far/describe-table client-opts :bowlorama))
+    (is (= (:prim-keys (far/describe-table local-client-opts :bowlorama))
            {:gameid {:key-type :hash, :data-type :n}, :player {:key-type :range, :data-type :s}})))
   (testing "we can set and retrieve ball history uniquely by game and player"
     (first3)
-    (far/put-item client-opts :bowlorama {:gameid 43 :player "Donald" :ballhistory  [3 0 3] })
-    (is (= (:ballhistory (far/get-item client-opts :bowlorama {:gameid 42 :player "Donald"}))
+    (far/put-item local-client-opts :bowlorama {:gameid 43 :player "Donald" :ballhistory  [3 0 3] })
+    (is (= (:ballhistory (far/get-item local-client-opts :bowlorama {:gameid 42 :player "Donald"}))
            [1 2 3]))
-    (is (= (:ballhistory (far/get-item client-opts :bowlorama {:gameid 43 :player "Donald"}))
+    (is (= (:ballhistory (far/get-item local-client-opts :bowlorama {:gameid 43 :player "Donald"}))
            [3 0 3]))))
 
 (deftest history-maintenance
-  (testing "Producing an updated ball history"
-    (first3)
-    (is (= (updated-history client-opts 42 "Bernie" 3)
-           [4 5 6 3])))
-  (testing "Retrieve player history from the DB"
-    (first3)
-    (is (= (player-history client-opts 42 "Bernie")
-           [4 5 6])))
-  (testing "Storing updated history in the DB"
-    (first3)
-    (append-ball-to-history client-opts 42 "Bernie" 2)
-    (append-ball-to-history client-opts 42 "Bernie" 10)
-    (is (=  (player-history client-opts 42 "Bernie")
-            [4 5 6 2 10]))))
+  (binding [client-opts local-client-opts]                  ; override client-opts with local definition
+    (testing "Producing an updated ball history"
+      (first3)
+      (is (= (updated-history 42 "Bernie" 3)
+             [4 5 6 3])))
+    (testing "Retrieve player history from the DB"
+      (first3)
+      (is (= (player-history 42 "Bernie")
+             [4 5 6])))
+    (testing "Storing updated history in the DB"
+      (first3)
+      (append-ball-to-history 42 "Bernie" 2)
+      (append-ball-to-history 42 "Bernie" 10)
+      (is (= (player-history 42 "Bernie")
+             [4 5 6 2 10])))))
+
 
 
 ;(def ^:dynamic client-opts
