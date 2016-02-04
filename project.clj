@@ -1,6 +1,6 @@
 (defproject bowlorama-history-tracker "0.1.0-SNAPSHOT"
   :description "Part of the bowlorama demo application that uses DynamoDB to manage the bowling game state."
-  :url "http://example.com/FIXME"
+  :url "https://github.com/pdxdan/bowlorama-history-tracker"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
