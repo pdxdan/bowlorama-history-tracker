@@ -1,8 +1,12 @@
 (ns bowlorama.history-tracker-test
   (:require [clojure.test :refer :all]
             ;[me.raynes.conch.low-level :as conch]
-            [amazonica.aws.dynamodbv2 :as ddb]
+            ;[amazonica.aws.dynamodbv2 :as ddb]
             [bowlorama.history-tracker :refer :all]))
+
+; Note:
+; The local unit tests all broke when I moved from Faraday to Amazonica for interfacing with DynamoDB
+; These are strictly integration tests that require full connectivity to AWS
 
 (def testtablename "bowloramatest")
 
