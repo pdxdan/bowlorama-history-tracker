@@ -1,7 +1,7 @@
 (ns bowlorama.history-tracker
   (:require [amazonica.aws.dynamodbv2 :as ddb]))
 
-(def ^:dynamic btable "bowlorama")
+(def ^:dynamic btable "bowlorama-nw")
 
 (defn init-bowlorama-table
   "Creates bowlorama table and schema" []

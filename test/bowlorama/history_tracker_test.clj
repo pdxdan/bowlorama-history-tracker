@@ -5,10 +5,39 @@
             [bowlorama.history-tracker :refer :all]))
 
 ; Note:
-; The local unit tests all broke when I moved from Faraday to Amazonica for interfacing with DynamoDB
+; The local unit tests all broke when I moved from Faraday to Amazonica for interfacing with DynamoDB,
+; so they've been removed for the time being.
 ; These are strictly integration tests that require full connectivity to AWS
 
-(def testtablename "bowloramatest")
+(def testtablename "bowloramatest-nw")
+
+(defn first3
+  "Establish three rounds of bowling history" []
+  (binding [btable testtablename]
+    (reset-player-history 42 "Donald")
+    (reset-player-history 42 "Bernie")
+    (append-ball-to-history 42 "Donald" 1)
+    (append-ball-to-history 42 "Bernie" 4)
+    (append-ball-to-history 42 "Donald" 2)
+    (append-ball-to-history 42 "Bernie" 5)
+    (append-ball-to-history 42 "Donald" 3)
+    (append-ball-to-history 42 "Bernie" 6)))
+
+
+(deftest history-maintenance
+  (binding [btable testtablename]                  ; override client-opts with local definition
+    (testing "Retrieve player history from the DB"
+      (first3)
+      (is (= (player-history 42 "Bernie") [4 5 6])))
+    (testing "Producing an updated ball history"
+      (first3)
+      (is (= (updated-history 42 "Bernie" 3) [4 5 6 3])))
+    (testing "Storing updated history in the DB"
+      (first3)
+      (append-ball-to-history 42 "Bernie" 2)
+      (append-ball-to-history 42 "Bernie" 10)
+      (is (= (player-history 42 "Bernie") [4 5 6 2 10])))))
+
 
 ;(def local-client-opts
 ;  "Minimum required connectivity parameters for local in-memory DB"
@@ -36,11 +65,11 @@
 ;  (teardown-local-db))
 
 ;(defn reset-table
-  ;"Drops, and recreates the test table" []
-  ;(binding [btable testtablename]
-  ;  (ddb/delete-table :table-name testtablename)
-  ;  (init-bowlorama-table)
-    ;))
+;"Drops, and recreates the test table" []
+;(binding [btable testtablename]
+;  (ddb/delete-table :table-name testtablename)
+;  (init-bowlorama-table)
+;))
 ;(reset-table)
 
 ;(defn foreach-fixture
@@ -50,19 +79,6 @@
 
 ;(use-fixtures :once onetime-fixture)
 ;(use-fixtures :each foreach-fixture)
-
-(defn first3
-  "Establish three rounds of bowling history" []
-  (binding [btable testtablename]
-    (reset-player-history 42 "Donald")
-    (reset-player-history 42 "Bernie")
-    (append-ball-to-history 42 "Donald" 1)
-    (append-ball-to-history 42 "Bernie" 4)
-    (append-ball-to-history 42 "Donald" 2)
-    (append-ball-to-history 42 "Bernie" 5)
-    (append-ball-to-history 42 "Donald" 3)
-    (append-ball-to-history 42 "Bernie" 6)))
-
 ;(deftest db-schema-tests
 ;  (testing "The bowlorama table exists"
 ;    (is (= (.contains (far/list-tables local-client-opts) :bowlorama) true)))
@@ -76,21 +92,6 @@
 ;           [1 2 3]))
 ;    (is (= (:ballhistory (far/get-item local-client-opts :bowlorama {:gameid 43 :player "Donald"}))
 ;           [3 0 3]))))
-
-
-(deftest history-maintenance
-  (binding [btable testtablename]                  ; override client-opts with local definition
-    (testing "Retrieve player history from the DB"
-      (first3)
-      (is (= (player-history 42 "Bernie") [4 5 6])))
-    (testing "Producing an updated ball history"
-      (first3)
-      (is (= (updated-history 42 "Bernie" 3) [4 5 6 3])))
-    (testing "Storing updated history in the DB"
-      (first3)
-      (append-ball-to-history 42 "Bernie" 2)
-      (append-ball-to-history 42 "Bernie" 10)
-      (is (= (player-history 42 "Bernie") [4 5 6 2 10])))))
 
 
 (binding [btable testtablename]
