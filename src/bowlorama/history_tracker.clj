@@ -1,41 +1,53 @@
 (ns bowlorama.history-tracker
-  (:require [taoensso.faraday :as far]
-            [me.raynes.conch :refer [programs with-programs let-programs] :as sh]))
+  (:require [amazonica.aws.dynamodbv2 :as ddb]))
 
-(def ^:dynamic client-opts
-  "Minimum required connectivity parameters for local in-memory DB"
-  {:access-key "LocalDBAccessDoesNotNeedARealAccessKey"
-   :secret-key "LocalDBAccessDoesNotNeedARealSecretKey"
-   })
+(def ^:dynamic btable "bowlorama")
 
 (defn init-bowlorama-table
-  "Creates bowlorama table and schemae"
-  [client-opts]
-  (far/create-table client-opts :bowlorama
-                    [:gameid :n]                            ; Partition (primary) key named "gameid" of number type
-                    {:range-keydef [:player :s]             ; Sort (range) key definition
-                     :throughput {:read 1 :write 1}         ; Read & write capacity (units/sec)
-                     :block? true }))                       ; Block thread during table creation
+  "Creates bowlorama table and schema" []
+  (ddb/create-table :table-name btable
+                :key-schema [{:attribute-name "gameid" :key-type "HASH"}
+                             {:attribute-name "player" :key-type "RANGE"}]
+                :attribute-definitions [{:attribute-name "gameid" :attribute-type "N"}
+                                        {:attribute-name "player" :attribute-type "S"}]
+                :provisioned-throughput {:read-capacity-units 1
+                                         :write-capacity-units 1}))
 
 (defn player-history
   "Retrieve a Player's ball history"
-  ;[client-opts gameid player]
   [gameid player]
-  (:ballhistory (far/get-item client-opts :bowlorama {:gameid gameid :player player})))
+  (:ballhistory (:item (ddb/get-item :table-name btable :key {:gameid gameid :player player}))))
+
+(defn game-state
+  "Retrieve the full state of a game"
+  [gameid]
+  (ddb/get-item :table-name btable :key {:gameid gameid} )
+  )
+(game-state 1)
 
 (defn updated-history
   "Lookup a player's ball history and append the latest new ball"
-  ;[client-opts gameid player ball]
   [gameid player ball]
-  (conj (:ballhistory (far/get-item client-opts :bowlorama {:gameid gameid :player player}))
-        ball))
+  (vec (conj (player-history gameid player) ball)))
 
 (defn append-ball-to-history
   "Receive a Player's name and new ball value, then updates their history in persistance"
-  ;[client-opts gameid player ball]
   [gameid player ball]
-  (far/put-item client-opts
-                :bowlorama
-                {:gameid      gameid
-                 :player      player
-                 :ballhistory (updated-history gameid player ball)}))
+  (ddb/put-item
+    :table-name btable
+    :return-consumed-capacity "TOTAL"
+    :return-item-collection-metrics "SIZE"
+    :item {:gameid gameid
+           :player player
+           :ballhistory (updated-history gameid player ball)}))
+
+(defn reset-player-history
+  "Receive a Player's name and new ball value, then updates their history in persistance"
+  [gameid player]
+  (ddb/put-item
+    :table-name btable
+    :return-consumed-capacity "TOTAL"
+    :return-item-collection-metrics "SIZE"
+    :item {:gameid gameid
+           :player player
+           :ballhistory [] }))
