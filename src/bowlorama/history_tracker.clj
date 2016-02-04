@@ -18,13 +18,6 @@
   [gameid player]
   (:ballhistory (:item (ddb/get-item :table-name btable :key {:gameid gameid :player player}))))
 
-(defn game-state
-  "Retrieve the full state of a game"
-  [gameid]
-  (ddb/get-item :table-name btable :key {:gameid gameid} )
-  )
-(game-state 1)
-
 (defn updated-history
   "Lookup a player's ball history and append the latest new ball"
   [gameid player ball]

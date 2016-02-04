@@ -59,7 +59,6 @@
     (append-ball-to-history 42 "Donald" 3)
     (append-ball-to-history 42 "Bernie" 6)))
 
-
 ;(deftest db-schema-tests
 ;  (testing "The bowlorama table exists"
 ;    (is (= (.contains (far/list-tables local-client-opts) :bowlorama) true)))
@@ -90,11 +89,11 @@
       (is (= (player-history 42 "Bernie") [4 5 6 2 10])))))
 
 
-{(binding [btable testtablename]
+(binding [btable testtablename]
    ;(ddb/delete-table :table-name testtablename)
    ;(init-bowlorama-table)
    ;(append-ball-to-history 43 "Ted" 2)
-   ;(player-history 43 "Ted")
+   ;(player-history 42 "Bernie")
    ;(first3)
    ;(reset-player-history 42 "Donald")
-   )}
+   )

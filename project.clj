@@ -9,6 +9,9 @@
                  [org.clojure/data.json "0.2.6"]
                  [uswitch/lambada "0.1.0"]
                  [amazonica "0.3.49"]
+                 ;[clj-http "2.0.1"]
+                 [clj-http "3.0.0-SNAPSHOT"]
+                 [cheshire "5.5.0"]
                  ]
   :profiles {:uberjar {:aot :all}}
   :uberjar-name "bowlorama-history-tracker.jar")
