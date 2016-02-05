@@ -11,6 +11,9 @@ Two functions are exposed from this library to Lambda:
 Note: when executing as a Lambda function, bowlorama-append-ball-to-history will call the remote bowlorama-score
 API to calculate the current score, and store that with the ball history. 
 
+The other pieces of Bowlorama are in the following repos:
+https://github.com/pdxdan/bowlorama-calculator
+https://github.com/pdxdan/bowlorama-jsclient
 
 ## Usage
 
